@@ -7,18 +7,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Lock } from 'lucide-react';
 
-interface PinSetupProps {
-  onPinCreated: (pin: string, accessTime: number) => void;
+interface credSetupProps {
+  onCredCreated: (pin: string, accessTime: number, user_name: string) => void;
 }
 
-export const PinSetup = ({ onPinCreated }: PinSetupProps) => {
+export const CredSetup = ({ onCredCreated }: credSetupProps) => {
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [user_name, setUserName] = useState('');
   const [accessTime, setAccessTime] = useState('60');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+     if (user_name.length < 4) {
+      alert('Username must be at least 4 character');
+      return;
+    }
     
     if (pin.length < 4) {
       alert('PIN must be at least 4 digits');
@@ -31,7 +36,7 @@ export const PinSetup = ({ onPinCreated }: PinSetupProps) => {
     }
 
     setLoading(true);
-    await onPinCreated(pin, parseInt(accessTime));
+    await onCredCreated(pin, parseInt(accessTime),user_name);
     setLoading(false);
   };
 
@@ -49,6 +54,18 @@ export const PinSetup = ({ onPinCreated }: PinSetupProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="user_name">UserName</Label>
+              <Input
+                id="user_name"
+                
+                value={user_name}
+                onChange={(e) => setUserName(e.target.value.trim())}
+                placeholder="Enter your username"
+                maxLength={8}
+                className="text-center text-lg tracking-widest"
+              />
+            </div>
             <div>
               <Label htmlFor="pin">PIN (4+ digits)</Label>
               <Input

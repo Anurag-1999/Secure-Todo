@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 export const usePinAccess = () => {
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -12,11 +13,31 @@ export const usePinAccess = () => {
   // Check if a PIN exists
   const checkPinExists = async () => {
     try {
+      const user_id = localStorage.getItem("user_id")
+      if(!user_id){
+        setHasPin(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('todo_pins')
         .select('id')
-        .eq('user_id', 'default_user')
+        .eq('user_id', user_id)
         .limit(1);
+
+        if(!data){
+            toast({
+        title: "User Not Found",
+        description: "Please Create New Pin!",
+      });
+          setHasPin(false)
+          return
+        }
+
+        setHasPin(true)
+        return
+
+
 
       if (error) throw error;
       setHasPin(data && data.length > 0);
@@ -28,20 +49,23 @@ export const usePinAccess = () => {
   };
 
   // Create a new PIN
-  const createPin = async (pin: string, accessTime: number) => {
+  const createPin = async (pin: string, accessTime: number,user_name:string) => {
     try {
       // Simple hash function for demo purposes (in production, use proper hashing)
       const pinHash = btoa(pin);
-      
+      const user_id = localStorage.getItem("user_id") || uuidv4();
       const { error } = await supabase
         .from('todo_pins')
         .insert([
           {
-            user_id: 'default_user',
+            user_id,
             pin_hash: pinHash,
-            access_time: accessTime
+            access_time: accessTime,
+            user_name
           }
         ]);
+
+        localStorage.setItem("user_id", user_id)
 
       if (error) throw error;
 
@@ -71,14 +95,23 @@ export const usePinAccess = () => {
   };
 
   // Verify PIN
-  const verifyPin = async (pin: string) => {
+  const verifyPin = async (pin: string,user_name: string) => {
     try {
+      let userData
+      if(user_name){
+         userData = await supabase
+        .from('todo_pins')
+        .select('user_id')
+        .eq('user_name', user_name)
+        .single();
+      }
       const pinHash = btoa(pin);
-      
+      const user_id = userData.data.user_id || localStorage.getItem("user_id")
+
       const { data, error } = await supabase
         .from('todo_pins')
         .select('access_time')
-        .eq('user_id', 'default_user')
+        .eq('user_id', user_id)
         .eq('pin_hash', pinHash)
         .single();
 
@@ -92,7 +125,7 @@ export const usePinAccess = () => {
       }
 
       setIsUnlocked(true);
-      
+      localStorage.setItem("user_id",user_id)
       toast({
         title: "Success",
         description: "Access granted!",

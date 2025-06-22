@@ -5,7 +5,7 @@ import { TodoForm } from '@/components/TodoForm';
 import { TodoList } from '@/components/TodoList';
 import { TodoFilters } from '@/components/TodoFilters';
 import { TodoStats } from '@/components/TodoStats';
-import { PinSetup } from '@/components/PinSetup';
+import { CredSetup } from '@/components/CredSetup';
 import { PinEntry } from '@/components/PinEntry';
 import { useTodos } from '@/hooks/useTodos';
 import { usePinAccess } from '@/hooks/usePinAccess';
@@ -41,7 +41,7 @@ const Index = () => {
 
   // Show PIN setup if no PIN exists
   if (!hasPin) {
-    return <PinSetup onPinCreated={createPin} />;
+    return <CredSetup  onCredCreated={createPin} />;
   }
 
   // Show PIN entry if locked

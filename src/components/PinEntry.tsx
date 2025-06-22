@@ -1,17 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock } from 'lucide-react';
 
 interface PinEntryProps {
-  onPinVerified: (pin: string) => void;
+  onPinVerified: (pin: string,user_name:string) => void;
 }
 
 export const PinEntry = ({ onPinVerified }: PinEntryProps) => {
   const [pin, setPin] = useState('');
+  const [user_name, setUserName] = useState('')
   const [loading, setLoading] = useState(false);
+  const [isVisibleUserNameInput,setIsVisibleUserNameInput] = useState(false)
+
+  useEffect(()=>{
+
+  },[isVisibleUserNameInput])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +27,7 @@ export const PinEntry = ({ onPinVerified }: PinEntryProps) => {
     }
 
     setLoading(true);
-    await onPinVerified(pin);
+    await onPinVerified(pin,user_name);
     setLoading(false);
     setPin('');
   };
@@ -40,6 +46,15 @@ export const PinEntry = ({ onPinVerified }: PinEntryProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+               {isVisibleUserNameInput && <Input
+              type="user_name"
+              value={user_name}
+              onChange={(e) => setUserName(e.target.value.trim())}
+              placeholder="Enter your UserName"
+              maxLength={20}
+              className="text-center text-2xl tracking-widest h-14"
+              autoFocus
+            />}
             <Input
               type="password"
               value={pin}
@@ -57,6 +72,14 @@ export const PinEntry = ({ onPinVerified }: PinEntryProps) => {
             >
               {loading ? 'Verifying...' : 'Unlock'}
             </Button>
+{!isVisibleUserNameInput &&  <Button 
+              type="button" 
+              className="w-full h-12"
+              onClick={()=>{
+                setIsVisibleUserNameInput(true)
+              }}
+             
+            >Want to use UserName?</Button>}
           </form>
         </CardContent>
       </Card>

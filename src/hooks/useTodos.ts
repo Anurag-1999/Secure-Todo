@@ -11,10 +11,19 @@ export interface Todo {
   user_id?: string;
 }
 
-export const useTodos = (userId: string = 'default_user') => {
+export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user_id, setUserID] = useState("")
   const { toast } = useToast();
+
+useEffect(()=>{
+  const user = localStorage.getItem("user_id")
+  if(user){
+    setUserID(user)
+    return
+  }
+},[])
 
   // Fetch todos from Supabase
   const fetchTodos = async () => {
@@ -23,7 +32,7 @@ export const useTodos = (userId: string = 'default_user') => {
       const { data, error } = await supabase
         .from('To-Do List')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user_id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -52,18 +61,18 @@ export const useTodos = (userId: string = 'default_user') => {
   // Add new todo
   const addTodo = async (title: string) => {
     try {
+     
       const { data, error } = await supabase
         .from('To-Do List')
         .insert([
           {
             to_do: title.trim(),
             todo_pin: 'active',
-            user_id: userId
+            user_id: user_id
           }
         ])
         .select()
         .single();
-
       if (error) throw error;
 
       const newTodo: Todo = {
@@ -177,7 +186,7 @@ export const useTodos = (userId: string = 'default_user') => {
       const { error } = await supabase
         .from('To-Do List')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user_id)
         .eq('todo_pin', 'completed');
 
       if (error) throw error;
@@ -210,7 +219,7 @@ export const useTodos = (userId: string = 'default_user') => {
           event: '*',
           schema: 'public',
           table: 'To-Do List',
-          filter: `user_id=eq.${userId}`
+          filter: `user_id=eq.${user_id}`
         },
         () => {
           fetchTodos();
@@ -221,7 +230,7 @@ export const useTodos = (userId: string = 'default_user') => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [user_id]);
 
   return {
     todos,
